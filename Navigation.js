@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "./screens/HomeScreen";
 import ProductDetailsScreen from "./screens/ProductDetailsScreen";
+import ProductListScreen from "./screens/ProductListScreen";
 import CartScreen from "./screens/CartScreen";
 import CheckoutScreen from "./screens/CheckoutScreen";
 import { View, Image, StyleSheet, Animated, Easing } from "react-native";
@@ -181,6 +182,11 @@ function MainStackNavigator() {
         component={ProductDetailsScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="ProductList"
+        component={ProductListScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -211,10 +217,10 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   pinkCircle: {
-    backgroundColor: "rgba(252, 148, 199, 0.3)", // Rose transparent
+    backgroundColor: "rgb(249, 196, 216)", // Rose transparent
   },
   purpleCircle: {
-    backgroundColor: "rgba(153, 102, 255, 0.3)", // Violet transparent
+    backgroundColor: "rgb(	220,222	,251)", // Violet transparent
   },
   logo: {
     width: 150,

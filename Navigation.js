@@ -8,11 +8,23 @@ import ProductDetailsScreen from "./screens/ProductDetailsScreen";
 import ProductListScreen from "./screens/ProductListScreen";
 import CartScreen from "./screens/CartScreen";
 import CheckoutScreen from "./screens/CheckoutScreen";
+import LoginScreen from "./screens/LoginScreen";
+import { Linking } from "react-native";
+import RegisterScreen from "./screens/RegisterScreen";
 import { View, Image, StyleSheet, Animated, Easing } from "react-native";
-
+import PaymentScreen from "./screens/PaymentScreen";
+import PaymentStatusScreen from "./screens/PaymentStatusScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
+const linking = {
+  prefixes: ["flouciapp://"], // Schéma personnalisé pour l'app
+  config: {
+    screens: {
+      Home: "", // Écran d'accueil
+      Payment: "payment/:paymentId", // Route pour l'écran de paiement avec l'ID de paiement
+    },
+  },
+};
 /**
  * SplashScreen avec animation
  */
@@ -182,6 +194,28 @@ function MainStackNavigator() {
         component={ProductDetailsScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="PaymentStatusScreen"
+        component={PaymentStatusScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="ProductList"
         component={ProductListScreen}
@@ -196,7 +230,7 @@ function MainStackNavigator() {
  */
 export default function Navigation() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <MainStackNavigator />
     </NavigationContainer>
   );

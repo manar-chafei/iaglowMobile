@@ -1,50 +1,56 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  items: [],
-  totalPrice: 0,
-};
-
 const cartSlice = createSlice({
   name: "cart",
-  initialState,
+  initialState: {
+    items: [],
+  },
   reducers: {
     addToCart: (state, action) => {
-      const product = action.payload;
-      const existingProduct = state.items.find((p) => p.id === product.id);
+      const newItem = action.payload;
 
-      if (existingProduct) {
-        existingProduct.quantity += product.quantity;
+      // Validation : Assurez-vous que le produit a un _id
+      if (!newItem._id) {
+        console.error("Produit invalide : aucun _id trouvé", newItem);
+        return;
+      }
+
+      // Convertir le prix en nombre flottant
+      newItem.price = parseFloat(newItem.price);
+
+      // Rechercher si le produit existe déjà dans le panier
+      const existingItem = state.items.find((item) => item._id === newItem._id);
+
+      if (existingItem) {
+        // Si le produit existe, augmenter sa quantité
+        existingItem.quantity += newItem.quantity || 1;
       } else {
+        // Sinon, ajouter le nouveau produit avec une quantité par défaut de 1
         state.items.push({
-          ...product,
-          price: parseFloat(product.price), // Assurez-vous que le prix est un nombre
-          quantity: product.quantity || 1, // Par défaut, la quantité est 1 si elle n'est pas définie
+          ...newItem,
+          quantity: newItem.quantity || 1,
         });
       }
 
-      // Recalculer le prix total
+      // Recalculer le prix total du panier
       state.totalPrice = state.items.reduce(
-        (acc, product) => acc + product.price * product.quantity,
+        (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
         0
       );
     },
+    updateCart: (state, action) => {
+      state.items = action.payload; // Updates the cart with the new items
+    },
     removeFromCart: (state, action) => {
-      const productId = action.payload;
-      state.items = state.items.filter((product) => product.id !== productId);
-
-      // Recalculer le prix total après suppression
-      state.totalPrice = state.items.reduce(
-        (acc, product) => acc + product.price * product.quantity,
-        0
-      );
+      state.items = state.items.filter((item) => item._id !== action.payload);
     },
     clearCart: (state) => {
       state.items = [];
-      state.totalPrice = 0;
     },
   },
 });
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;
+export const { addToCart, updateCart, removeFromCart, clearCart } =
+  cartSlice.actions;
+
 export default cartSlice.reducer;

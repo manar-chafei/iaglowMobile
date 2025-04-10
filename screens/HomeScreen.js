@@ -14,14 +14,31 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useNavigation } from "@react-navigation/native";
-
+import { useSelector } from "react-redux";
+import { getTokenFromStorage } from "../utils/tokenUtils";
 export default function HomeScreen() {
   const [products, setProducts] = useState([]);
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null); // Tracks the selected category name
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const user = useSelector((state) => state.user.userInfo);
+  // Fetch products on component mount
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const fetchedToken = await getTokenFromStorage(); // Fetch token from AsyncStorage
+        setToken(fetchedToken); // Update the state
+      } catch (error) {
+        console.error("Erreur lors de la récupération du token:", error);
+      }
+    };
+
+    fetchToken();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,9 +48,9 @@ export default function HomeScreen() {
         );
         const data = await response.json();
         setProducts(data);
-        setFilteredProducts(data); // Initialement, tous les produits sont affichés
+        setFilteredProducts(data); // Initially, all products are displayed
       } catch (error) {
-        console.error("Erreur lors de la récupération des produits:", error);
+        console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
       }
@@ -41,6 +58,7 @@ export default function HomeScreen() {
     fetchProducts();
   }, []);
 
+  // Filter products based on search text
   useEffect(() => {
     if (searchText === "") {
       setFilteredProducts(products);
@@ -55,6 +73,22 @@ export default function HomeScreen() {
       );
     }
   }, [searchText, products]);
+
+  // Filter products based on the selected category
+  useEffect(() => {
+    if (activeCategory) {
+      // Filter products by the selected category name
+      const categoryFilteredProducts = products.filter(
+        (product) =>
+          product.category &&
+          product.category.toLowerCase() === activeCategory.toLowerCase()
+      );
+      setFilteredProducts(categoryFilteredProducts);
+    } else {
+      // Reset to all products if no category is selected
+      setFilteredProducts(products);
+    }
+  }, [activeCategory, products]);
 
   const categories = [
     {
@@ -101,21 +135,25 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* En-tête */}
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.greeting}>Hello!</Text>
+        {user ? (
+          <Text style={styles.greeting}>Hello, {user.name}!</Text>
+        ) : (
+          <Text style={styles.greeting}>Welcome to Ia Glow!</Text>
+        )}
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher"
+          placeholder="Search"
           value={searchText}
           onChangeText={setSearchText}
         />
       </View>
 
-      {/* Nom d'utilisateur */}
+      {/* User Name */}
       <Text style={styles.userName}>User Name</Text>
 
-      {/* Catégories */}
+      {/* Categories */}
       <FlatList
         style={styles.catList}
         horizontal
@@ -125,15 +163,19 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <CategoryCard
             item={item}
-            isActive={activeCategory === item.id}
-            onPress={() => setActiveCategory(item.id)}
+            isActive={activeCategory === item.name}
+            onPress={() =>
+              setActiveCategory(activeCategory === item.name ? null : item.name)
+            }
           />
         )}
       />
 
-      {/* Produits populaires */}
+      {/* Popular Section or Category Filtered Products */}
       <View style={styles.popularSection}>
-        <Text style={styles.sectionTitle}>Popular</Text>
+        <Text style={styles.sectionTitle}>
+          {activeCategory ? activeCategory : "Popular"}
+        </Text>
         <TouchableOpacity
           style={styles.seeAllButton}
           onPress={() => navigation.navigate("ProductList")}
@@ -162,15 +204,17 @@ export default function HomeScreen() {
         showsHorizontalScrollIndicator={false}
       />
 
-      {/* Offres */}
-      <View style={styles.offersSection}>
-        <Text style={styles.sectionTitle}>Offers</Text>
-        {offers.map((offer) => (
-          <OfferCard key={offer.id} offer={offer} />
-        ))}
-      </View>
+      {/* Offers Section (Hidden when a category is selected) */}
+      {!activeCategory && (
+        <View style={styles.offersSection}>
+          <Text style={styles.sectionTitle}>Offers</Text>
+          {offers.map((offer) => (
+            <OfferCard key={offer.id} offer={offer} />
+          ))}
+        </View>
+      )}
 
-      {/* Barre de navigation */}
+      {/* Navigation Bar */}
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.navBarItem}>
           <Image
@@ -201,15 +245,14 @@ export default function HomeScreen() {
   );
 }
 
-// Composant pour les cartes de catégories avec animation
+// Category Card Component
 const CategoryCard = ({ item, isActive, onPress }) => {
   const scale = useSharedValue(isActive ? 1.2 : 1);
-
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
     };
-  }, [isActive]); // Ajout du tableau de dépendances
+  }, [isActive]); // Add dependency array
 
   React.useEffect(() => {
     scale.value = isActive ? 1.2 : 1;
@@ -236,7 +279,7 @@ const CategoryCard = ({ item, isActive, onPress }) => {
   );
 };
 
-// Composant pour les cartes d'offres
+// Offer Card Component
 const OfferCard = ({ offer }) => {
   return (
     <View style={styles.offerCard}>
@@ -293,7 +336,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   categoryCard: {
     width: 100,
     height: 100,

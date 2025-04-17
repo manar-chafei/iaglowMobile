@@ -13,6 +13,7 @@ import { Linking } from "react-native";
 import RegisterScreen from "./screens/RegisterScreen";
 import { View, Image, StyleSheet, Animated, Easing } from "react-native";
 import PaymentScreen from "./screens/PaymentScreen";
+import SuccessPage from "./screens/SuccessPage";
 import PaymentStatusScreen from "./screens/PaymentStatusScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -204,6 +205,11 @@ function MainStackNavigator() {
       <Stack.Screen
         name="PaymentStatusScreen"
         component={PaymentStatusScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Success"
+        component={SuccessPage}
         options={{ headerShown: false }}
       />
       <Stack.Screen
